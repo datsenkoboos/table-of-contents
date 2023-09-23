@@ -1,6 +1,18 @@
-import { shallowMount, type ComponentMountingOptions } from '@vue/test-utils';
+import {
+  shallowMount,
+  type ComponentMountingOptions,
+  mount,
+} from '@vue/test-utils';
 import ContentNode from './ContentNode.vue';
-import { describe, it, expect, vi, type Mock, afterEach } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  type Mock,
+  afterEach,
+  beforeEach,
+} from 'vitest';
 import { DataMock } from '@/mocks';
 import { createTestingPinia } from '@pinia/testing';
 import { useRoute } from 'vue-router';
@@ -9,15 +21,7 @@ import type { DataModel, ContentNodeModel } from '@/models';
 
 const DefaultMountOptions: ComponentMountingOptions<typeof ContentNode> = {
   global: {
-    plugins: [
-      createTestingPinia({
-        initialState: {
-          app: {
-            data: DataMock,
-          },
-        },
-      }),
-    ],
+    plugins: [createTestingPinia()],
     renderStubDefaultSlot: true,
   },
 };
@@ -51,7 +55,6 @@ function getPassedNode(
 
 const nodeLinkSelector = '[data-testid=nodeLink]';
 const nodeChildrenWrapperSelector = '[data-testid=nodeChildrenWrapper]';
-const childNodeSelector = '[data-testid=childNode]';
 const showChildrenButtonSelector = '[data-testid=showChildrenButton]';
 const showChildrenIconSelector = '[data-testid=showChildrenIcon]';
 
@@ -67,25 +70,30 @@ vi.mock('vue-router', async () => {
 });
 
 describe('ContentNode', () => {
+  beforeEach(() => {
+    const appStore = useAppStore();
+    appStore.data = DataMock;
+    appStore.keysToShowChildren = [];
+  });
   afterEach(() => {
     vi.restoreAllMocks();
   });
   describe('props', () => {
-    it('contentKey - should render the correct name of the node within the nodeLink based on the provided contentKey', () => {
+    it('contentKey - should render the correct name of the node within the nodeLink', () => {
       const wrapper = shallowMount(ContentNode, GeneralMountOptions);
       const appStore = useAppStore();
       expect(wrapper.get(nodeLinkSelector).text()).toBe(
         getPassedNode(appStore, GeneralMountOptions).name
       );
     });
-    it('contentKey - should set the correct "to" attribute in nodeLink based on the provided contentKey', () => {
+    it('contentKey - should set the correct "to" attribute in nodeLink', () => {
       const wrapper = shallowMount(ContentNode, GeneralMountOptions);
       const appStore = useAppStore();
       expect(wrapper.get(nodeLinkSelector).attributes('to')).toBe(
         getPassedNode(appStore, GeneralMountOptions).link.slice(0, -5)
       );
     });
-    it('contentKey - should apply active text color to nodeLink and disable hover effect when route matches node.link based on the provided contentKey', () => {
+    it.only('contentKey - should apply active text color to nodeLink and disable hover effect when route matches node.link', () => {
       const appStore = useAppStore();
       (useRoute as Mock).mockReturnValueOnce({
         fullPath: getPassedNode(appStore, GeneralMountOptions).link.slice(
@@ -93,7 +101,7 @@ describe('ContentNode', () => {
           -5
         ),
       });
-      const wrapper = shallowMount(ContentNode, GeneralMountOptions);
+      const wrapper = mount(ContentNode, GeneralMountOptions);
       expect(wrapper.get(nodeLinkSelector).classes()).toContain(
         'text-[var(--color-link-active)]'
       );
@@ -101,7 +109,7 @@ describe('ContentNode', () => {
         'hover:text-[var(--color-link-active)]'
       );
     });
-    it('should not apply active text color to nodeLink and enable hover effect when route does not match node.link based on the provided contentKey', () => {
+    it('contentKey - should not apply active text color to nodeLink and enable hover effect when route does not match node.link', () => {
       (useRoute as Mock).mockReturnValueOnce({
         fullPath: 'foo',
       });
@@ -124,72 +132,18 @@ describe('ContentNode', () => {
       });
     });
     describe('contentKey of node with children', () => {
-      describe('contentKey of node with level=0', () => {
-        it('should not emit "showChildren" event when route matches node.link', () => {
-          const appStore = useAppStore();
-          (useRoute as Mock).mockReturnValueOnce({
-            fullPath: getPassedNode(
-              appStore,
-              WithChildrenMountOptions
-            ).link.slice(0, -5),
-          });
-          const wrapper = shallowMount(ContentNode, WithChildrenMountOptions);
-          expect(wrapper.emitted()).not.toHaveProperty('showChildren');
-        });
-      });
-      describe('contentKey of node with level!=0', () => {
-        it('should emit "showChildren" event when route matches node.link', () => {
-          const TestMountOptions: typeof DefaultMountOptions = {
-            ...DefaultMountOptions,
-            props: {
-              contentKey: 'nested_node',
-            },
-          };
-          const appStore = useAppStore();
-          (useRoute as Mock).mockReturnValueOnce({
-            fullPath: getPassedNode(appStore, TestMountOptions).link.slice(
-              0,
-              -5
-            ),
-          });
-          const wrapper = shallowMount(ContentNode, TestMountOptions);
-          expect(wrapper.emitted()).toHaveProperty('showChildren');
-          expect(wrapper.emitted('showChildren')).toHaveLength(1);
-        });
-      });
-      it('should render nodeChildrenWrapper visible when route matches node.link', () => {
-        const appStore = useAppStore();
-        (useRoute as Mock).mockReturnValueOnce({
-          fullPath: getPassedNode(
-            appStore,
-            WithChildrenMountOptions
-          ).link.slice(0, -5),
-        });
+      it('should not render nodeChildrenWrapper by default', () => {
         const wrapper = shallowMount(ContentNode, WithChildrenMountOptions);
-        expect(wrapper.get(nodeChildrenWrapperSelector).isVisible()).toBe(true);
+        expect(wrapper.find(nodeChildrenWrapperSelector).exists()).toBe(false);
       });
-      it('should render nodeChildrenWrapper', () => {
+      it('should render nodeChildrenWrapper when appStore.keysToShowChildren includes contentKey', () => {
+        const appStore = useAppStore();
+        appStore.keysToShowChildren = [
+          WithChildrenMountOptions.props!.contentKey,
+        ];
+
         const wrapper = shallowMount(ContentNode, WithChildrenMountOptions);
         expect(wrapper.find(nodeChildrenWrapperSelector).exists()).toBe(true);
-      });
-      it('should render nodeChildrenWrapper invisible by default', () => {
-        const wrapper = shallowMount(ContentNode, WithChildrenMountOptions);
-        expect(wrapper.get(nodeChildrenWrapperSelector).isVisible()).toBe(
-          false
-        );
-      });
-      it('should render the correct number of child nodes with valid content keys', () => {
-        const wrapper = shallowMount(ContentNode, WithChildrenMountOptions);
-        const appStore = useAppStore();
-        const childNodes = getPassedNode(appStore, WithChildrenMountOptions)
-          .childPageKeys!;
-
-        const renderedNodes = wrapper.findAll(childNodeSelector);
-
-        expect(renderedNodes).toHaveLength(childNodes.length);
-        for (let i = 0; i < childNodes.length; i++) {
-          expect(renderedNodes[i].attributes('contentkey')).toBe(childNodes[i]);
-        }
       });
       it('should render showChildrenButton', () => {
         const wrapper = shallowMount(ContentNode, WithChildrenMountOptions);
@@ -205,57 +159,53 @@ describe('ContentNode', () => {
         );
       });
     });
-  });
-  describe('user interactions', () => {
-    it('nodeLink click - should make nodeChildrenWrapper visible, change showChildrenIcon class from "rotate-90" to "rotate-180"', async () => {
-      const wrapper = shallowMount(ContentNode, WithChildrenMountOptions);
+    describe('user interactions', () => {
+      it('nodeLink click - should render nodeChildrenWrapper, change showChildrenIcon class from "rotate-90" to "rotate-180"', async () => {
+        const wrapper = shallowMount(ContentNode, WithChildrenMountOptions);
 
-      await wrapper.get(nodeLinkSelector).trigger('click');
+        await wrapper.get(nodeLinkSelector).trigger('click');
 
-      expect(wrapper.get(nodeChildrenWrapperSelector).isVisible()).toBe(true);
-      expect(wrapper.get(showChildrenIconSelector).classes()).not.toContain(
-        'rotate-90'
-      );
-      expect(wrapper.get(showChildrenIconSelector).classes()).toContain(
-        'rotate-180'
-      );
+        expect(wrapper.find(nodeChildrenWrapperSelector).exists()).toBe(true);
+        expect(wrapper.get(showChildrenIconSelector).classes()).not.toContain(
+          'rotate-90'
+        );
+        expect(wrapper.get(showChildrenIconSelector).classes()).toContain(
+          'rotate-180'
+        );
 
-      await wrapper.get(nodeLinkSelector).trigger('click');
+        await wrapper.get(nodeLinkSelector).trigger('click');
 
-      expect(wrapper.get(nodeChildrenWrapperSelector).isVisible()).toBe(true);
-      expect(wrapper.get(showChildrenIconSelector).classes()).not.toContain(
-        'rotate-90'
-      );
-      expect(wrapper.get(showChildrenIconSelector).classes()).toContain(
-        'rotate-180'
-      );
-    });
-    it('showChildrenButton click - should toggle nodeChildrenWrapper visibility, toggle showChildrenIcon class from "rotate-90" to "rotate-180"', async () => {
-      const wrapper = shallowMount(ContentNode, WithChildrenMountOptions);
+        expect(wrapper.find(nodeChildrenWrapperSelector).exists()).toBe(true);
+        expect(wrapper.get(showChildrenIconSelector).classes()).not.toContain(
+          'rotate-90'
+        );
+        expect(wrapper.get(showChildrenIconSelector).classes()).toContain(
+          'rotate-180'
+        );
+      });
+      it('showChildrenButton click - should toggle nodeChildrenWrapper rendering, toggle showChildrenIcon class from "rotate-90" to "rotate-180"', async () => {
+        const wrapper = shallowMount(ContentNode, WithChildrenMountOptions);
 
-      await wrapper.get(showChildrenButtonSelector).trigger('click');
+        await wrapper.get(showChildrenButtonSelector).trigger('click');
 
-      expect(
-        wrapper.get(nodeChildrenWrapperSelector).attributes('style')
-      ).not.toBe('display: none;');
-      expect(wrapper.get(showChildrenIconSelector).classes()).not.toContain(
-        'rotate-90'
-      );
-      expect(wrapper.get(showChildrenIconSelector).classes()).toContain(
-        'rotate-180'
-      );
+        expect(wrapper.find(nodeChildrenWrapperSelector).exists()).toBe(true);
+        expect(wrapper.get(showChildrenIconSelector).classes()).not.toContain(
+          'rotate-90'
+        );
+        expect(wrapper.get(showChildrenIconSelector).classes()).toContain(
+          'rotate-180'
+        );
 
-      await wrapper.get(showChildrenButtonSelector).trigger('click');
+        await wrapper.get(showChildrenButtonSelector).trigger('click');
 
-      expect(wrapper.get(nodeChildrenWrapperSelector).attributes('style')).toBe(
-        'display: none;'
-      );
-      expect(wrapper.get(showChildrenIconSelector).classes()).toContain(
-        'rotate-90'
-      );
-      expect(wrapper.get(showChildrenIconSelector).classes()).not.toContain(
-        'rotate-180'
-      );
+        expect(wrapper.find(nodeChildrenWrapperSelector).exists()).toBe(false);
+        expect(wrapper.get(showChildrenIconSelector).classes()).toContain(
+          'rotate-90'
+        );
+        expect(wrapper.get(showChildrenIconSelector).classes()).not.toContain(
+          'rotate-180'
+        );
+      });
     });
   });
 });

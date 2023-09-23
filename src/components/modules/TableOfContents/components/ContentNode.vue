@@ -1,6 +1,7 @@
 <template>
   <div
     class="my-1 text-sm text-[var(--color-link-text)] font-bold"
+    ref="currentNode"
     :data-testid="contentKey"
   >
     <div class="flex gap-1.5 items-start">
@@ -19,9 +20,9 @@
       </button>
       <RouterLink
         @click="showChildren = true"
-        :to="node.link.slice(0, -5)"
+        :to="nodePage"
         :class="
-          route.fullPath.includes(node.link.slice(0, -5))
+          route.fullPath.includes(nodePage)
             ? 'text-[var(--color-link-active)]'
             : 'hover:text-[var(--color-link-active)]'
         "
@@ -29,22 +30,24 @@
         >{{ node.name }}</RouterLink
       >
     </div>
-    <template v-if="node.childPageKeys">
-      <div v-if="node.childPageKeys && showChildren" class="pl-6" data-testid="nodeChildrenWrapper">
-        <ContentNode
-          v-for="childKey in node.childPageKeys"
-          :key="childKey"
-          :content-key="childKey"
-          data-testid="childNode"
-        />
-      </div>
-    </template>
+    <div
+      v-if="node.childPageKeys && showChildren"
+      class="pl-6"
+      data-testid="nodeChildrenWrapper"
+    >
+      <ContentNode
+        v-for="childKey in node.childPageKeys"
+        :key="childKey"
+        :content-key="childKey"
+        data-testid="childNode"
+      />
+    </div>
   </div>
 </template>
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { useAppStore } from '@/stores';
-import { onBeforeMount, ref } from 'vue';
+import { onBeforeMount, onMounted, ref } from 'vue';
 import { useRoute, RouterLink } from 'vue-router';
 
 const route = useRoute();
@@ -54,19 +57,19 @@ const props = defineProps<{
 }>();
 
 let node = appStore.data.pages[props.contentKey];
+const nodePage = node.link.slice(0, -5);
 
 const showChildren = ref(false);
+const currentNode = ref<HTMLDivElement>();
 
 onBeforeMount(() => {
-  if (appStore.nodesToShowChildren.includes(props.contentKey)) {
+  if (appStore.keysToShowChildren.includes(props.contentKey)) {
     showChildren.value = true;
   }
 });
-
-// function emitAndShowChildren() {
-//   showChildren.value = true;
-//   if (node.level !== 0) {
-//     emit('showChildren');
-//   }
-// }
+onMounted(() => {
+  if (route.fullPath.includes(nodePage)) {
+    currentNode.value!.scrollIntoView();
+  }
+});
 </script>
