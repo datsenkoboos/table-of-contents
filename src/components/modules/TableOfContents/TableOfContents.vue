@@ -1,6 +1,8 @@
 <template>
   <div class="min-w-[300px] border-r-[2px]">
-    <nav class="fixed w-[300px] max-h-[100dvh] pr-5 pl-4 pt-4 pb-8 overflow-y-scroll">
+    <nav
+      class="fixed w-[300px] max-h-[100dvh] pr-5 pl-4 pt-4 pb-8 overflow-y-scroll"
+    >
       <ContentNode
         v-for="rootKey in appStore.data.rootLevelKeys"
         :key="rootKey"
@@ -11,12 +13,12 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onBeforeMount } from 'vue'
-import { useAppStore } from '@/stores'
-import { ContentNode } from './components'
+import { onBeforeMount } from 'vue';
+import { useAppStore } from '@/stores';
+import { ContentNode } from './components';
 
-const appStore = useAppStore()
+const appStore = useAppStore();
 onBeforeMount(async () => {
-  await appStore.init()
-})
+  await appStore.init();
+});
 </script>

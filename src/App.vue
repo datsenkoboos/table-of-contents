@@ -5,6 +5,6 @@
   </div>
 </template>
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import { TableOfContents } from './components/modules'
+import { RouterView } from 'vue-router';
+import { TableOfContents } from './components/modules';
 </script>
