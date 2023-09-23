@@ -1,9 +1,7 @@
 import { setActivePinia, createPinia } from 'pinia'
 import useStore from './appStore'
 import { describe, it, expect, beforeAll, vi, afterEach, type Mock } from 'vitest'
-import type { Data } from '@/models'
-
-const testData: Data = { pages: {}, rootLevelKeys: ['test'] }
+import { DataMock } from '@/mocks'
 
 vi.stubGlobal('fetch', vi.fn())
 function createFetchResponse(data: unknown) {
@@ -30,12 +28,12 @@ describe('AppStore', () => {
   describe('actions', () => {
     it('setData - should set data to passed value', () => {
       const store = useStore()
-      store.setData(testData)
+      store.setData(DataMock)
 
-      expect(store.data).toStrictEqual(testData)
+      expect(store.data).toStrictEqual(DataMock)
     })
     it('init - should fetch from valid url and set returned data', async () => {
-      ;(fetch as Mock).mockResolvedValue(createFetchResponse(testData))
+      ;(fetch as Mock).mockResolvedValue(createFetchResponse(DataMock))
 
       const store = useStore()
       vi.spyOn(store, 'setData')
@@ -46,7 +44,7 @@ describe('AppStore', () => {
       expect(fetch).toHaveBeenCalledWith('https://prolegomenon.s3.amazonaws.com/contents.json')
 
       expect(store.setData).toHaveBeenCalled()
-      expect(store.setData).toHaveBeenCalledWith(testData)
+      expect(store.setData).toHaveBeenCalledWith(DataMock)
     })
   })
 })
