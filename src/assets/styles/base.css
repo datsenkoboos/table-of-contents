@@ -1,4 +1,4 @@
 :root {
-  --color-link-text: #545b64;
-  --color-link-text-hover: #0073bb;
+  --color-link: #545b64;
+  --color-link-active: #0073bb;
 }
