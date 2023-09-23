@@ -1,6 +1,6 @@
 import TableOfContents from './TableOfContents.vue';
 import { describe, it, expect, vi, type Mock, afterEach, vitest } from 'vitest';
-import { mount, shallowMount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { useAppStore } from '@/stores';
 import { DataMock } from '@/mocks';
@@ -10,6 +10,8 @@ import router from '@/router';
 const rootNodeSelector = '[data-testid=rootNode]';
 const toggleIconSelector = '[data-testid=toggleIcon]';
 const toggleButtonSelector = '[data-testid=toggleButton]';
+const tableOfContentsSelector = '[data-testid=tableOfContents]';
+const tableOfContentsWrapperSelector = '[data-testid=tableOfContentsWrapper]';
 
 vi.mock('vue-router', async () => {
   const actual =
@@ -77,6 +79,52 @@ describe('TableOfContents', () => {
           appStoreRootNodes[i]
         );
       }
+    });
+    it('appStore.showTableOfContents - should render tableOfContents with "w-[300px]" class, without "w-[40px]" class, tableOfContentsWrapper with "min-w-[300px]" class, without "min-w-[40px]" class when set to "true"', () => {
+      const wrapper = shallowMount(TableOfContents, {
+        global: {
+          plugins: [createTestingPinia()],
+        },
+      });
+      expect(wrapper.get(tableOfContentsWrapperSelector).classes()).toContain(
+        'min-w-[300px]'
+      );
+      expect(
+        wrapper.get(tableOfContentsWrapperSelector).classes()
+      ).not.toContain('min-w-[40px]');
+      expect(wrapper.get(tableOfContentsSelector).classes()).toContain(
+        'w-[300px]'
+      );
+      expect(wrapper.get(tableOfContentsSelector).classes()).not.toContain(
+        'w-[40px]'
+      );
+    });
+    it('appStore.showTableOfContents - should render tableOfContents with "w-[40px]" class, without "w-[300px]" class, tableOfContentsWrapper with "min-w-[40px]" class, without "min-w-[300px]" class when set to "false"', () => {
+      const wrapper = shallowMount(TableOfContents, {
+        global: {
+          plugins: [
+            createTestingPinia({
+              initialState: {
+                app: {
+                  showTableOfContents: false,
+                },
+              },
+            }),
+          ],
+        },
+      });
+      expect(
+        wrapper.get(tableOfContentsWrapperSelector).classes()
+      ).not.toContain('min-w-[300px]');
+      expect(wrapper.get(tableOfContentsWrapperSelector).classes()).toContain(
+        'min-w-[40px]'
+      );
+      expect(wrapper.get(tableOfContentsSelector).classes()).not.toContain(
+        'w-[300px]'
+      );
+      expect(wrapper.get(tableOfContentsSelector).classes()).toContain(
+        'w-[40px]'
+      );
     });
     it('appStore.showTableOfContents - should render nav visible when set to "true"', () => {
       const wrapper = shallowMount(TableOfContents, {

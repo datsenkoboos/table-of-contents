@@ -2,7 +2,7 @@
   <div
     class="border-r-[2px]"
     :class="appStore.showTableOfContents ? 'min-w-[300px]' : 'min-w-[40px]'"
-    data-testid="tableOfContents"
+    data-testid="tableOfContentsWrapper"
   >
     <div
       class="fixed h-[100dvh] overflow-y-scroll"
@@ -11,6 +11,7 @@
           ? 'w-[300px] pr-5 pl-4 pb-8 pt-8'
           : 'w-[40px]'
       "
+      data-testid="tableOfContents"
     >
       <button
         class="text-[22px] text-[var(--color-link)] hover:text-black"
