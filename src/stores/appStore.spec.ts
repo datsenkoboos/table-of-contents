@@ -113,5 +113,14 @@ describe('AppStore', () => {
       );
       expect(store.keysToShowChildren).toStrictEqual(parentKeys);
     });
+    it('toggleTableOfContents - should toggle showTableOfContents', () => {
+      const store = useStore();
+
+      store.toggleTableOfContents();
+      expect(store.showTableOfContents).toBe(false);
+
+      store.toggleTableOfContents();
+      expect(store.showTableOfContents).toBe(true);
+    });
   });
 });

@@ -39,6 +39,9 @@ const useAppStore = defineStore('app', {
         }
       }
     },
+    toggleTableOfContents(): void {
+      this.showTableOfContents = !this.showTableOfContents;
+    },
   },
 });
 
