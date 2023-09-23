@@ -19,12 +19,11 @@ import { ContentNode } from './components';
 import router from '@/router';
 import { useRoute } from 'vue-router';
 
-const route = useRoute()
+const route = useRoute();
 const appStore = useAppStore();
 onBeforeMount(async () => {
-  router.isReady().then(() => {
-    const routeKey = route.fullPath.split('-').join('_').slice(1);
-    appStore.init(routeKey);
-  })
+  await router.isReady();
+  const routeKey = route.fullPath.split('-').join('_').slice(1);
+  appStore.init(routeKey);
 });
 </script>
