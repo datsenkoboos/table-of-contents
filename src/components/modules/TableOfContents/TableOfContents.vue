@@ -13,7 +13,7 @@
       "
     >
       <button
-        class="text-[22px]"
+        class="text-[22px] text-[var(--color-link)] hover:text-black"
         :class="
           appStore.showTableOfContents
             ? 'absolute top-4 right-5'

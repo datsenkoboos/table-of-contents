@@ -1,6 +1,6 @@
 <template>
   <div
-    class="my-1 text-sm text-[var(--color-link-text)] font-bold"
+    class="my-1 text-sm text-[var(--color-link)] font-bold"
     ref="currentNode"
     :data-testid="contentKey"
   >
