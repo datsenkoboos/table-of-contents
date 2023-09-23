@@ -1,3 +1,3 @@
-import DataMock from './DataMock'
+import DataMock from './DataMock';
 
-export { DataMock }
+export { DataMock };
