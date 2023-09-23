@@ -1,8 +1,4 @@
-import {
-  shallowMount,
-  type ComponentMountingOptions,
-  mount,
-} from '@vue/test-utils';
+import { shallowMount, type ComponentMountingOptions } from '@vue/test-utils';
 import ContentNode from './ContentNode.vue';
 import {
   describe,
@@ -12,6 +8,7 @@ import {
   type Mock,
   afterEach,
   beforeEach,
+  beforeAll,
 } from 'vitest';
 import { DataMock } from '@/mocks';
 import { createTestingPinia } from '@pinia/testing';
@@ -70,6 +67,9 @@ vi.mock('vue-router', async () => {
 });
 
 describe('ContentNode', () => {
+  beforeAll(() => {
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
+  });
   beforeEach(() => {
     const appStore = useAppStore();
     appStore.data = DataMock;
@@ -93,33 +93,82 @@ describe('ContentNode', () => {
         getPassedNode(appStore, GeneralMountOptions).link.slice(0, -5)
       );
     });
-    it.only('contentKey - should apply active text color to nodeLink and disable hover effect when route matches node.link', () => {
-      const appStore = useAppStore();
-      (useRoute as Mock).mockReturnValueOnce({
-        fullPath: getPassedNode(appStore, GeneralMountOptions).link.slice(
-          0,
-          -5
-        ),
+    describe('contentKey of route-selected node', () => {
+      it('should apply active text color to nodeLink and disable hover effect', () => {
+        const appStore = useAppStore();
+        (useRoute as Mock).mockReturnValueOnce({
+          fullPath: getPassedNode(appStore, GeneralMountOptions).link.slice(
+            0,
+            -5
+          ),
+        });
+        const wrapper = shallowMount(ContentNode, GeneralMountOptions);
+        expect(wrapper.get(nodeLinkSelector).classes()).toContain(
+          'text-[var(--color-link-active)]'
+        );
+        expect(wrapper.get(nodeLinkSelector).classes()).not.toContain(
+          'hover:text-[var(--color-link-active)]'
+        );
       });
-      const wrapper = mount(ContentNode, GeneralMountOptions);
-      expect(wrapper.get(nodeLinkSelector).classes()).toContain(
-        'text-[var(--color-link-active)]'
-      );
-      expect(wrapper.get(nodeLinkSelector).classes()).not.toContain(
-        'hover:text-[var(--color-link-active)]'
-      );
+      it('should render without "font-semibold" class, with "font-bold" class', () => {
+        const appStore = useAppStore();
+        (useRoute as Mock).mockReturnValueOnce({
+          fullPath: getPassedNode(appStore, GeneralMountOptions).link.slice(
+            0,
+            -5
+          ),
+        });
+        const wrapper = shallowMount(ContentNode, GeneralMountOptions);
+        const contentNodeSelector = `[data-testid=${
+          GeneralMountOptions.props!.contentKey
+        }]`;
+        expect(wrapper.get(contentNodeSelector).classes()).toContain(
+          'font-bold'
+        );
+        expect(wrapper.get(contentNodeSelector).classes()).not.toContain(
+          'font-semibold'
+        );
+      });
+      it('should call scrollIntoView', () => {
+        const appStore = useAppStore();
+        (useRoute as Mock).mockReturnValueOnce({
+          fullPath: getPassedNode(appStore, GeneralMountOptions).link.slice(
+            0,
+            -5
+          ),
+        });
+        shallowMount(ContentNode, GeneralMountOptions);
+        expect(window.HTMLElement.prototype.scrollIntoView).toHaveBeenCalled();
+      });
     });
-    it('contentKey - should not apply active text color to nodeLink and enable hover effect when route does not match node.link', () => {
-      (useRoute as Mock).mockReturnValueOnce({
-        fullPath: 'foo',
+    describe('contentKey of node that is not route-selected', () => {
+      it('should not apply active text color to nodeLink and enable hover effect', () => {
+        (useRoute as Mock).mockReturnValueOnce({
+          fullPath: 'foo',
+        });
+        const wrapper = shallowMount(ContentNode, GeneralMountOptions);
+        expect(wrapper.get(nodeLinkSelector).classes()).not.toContain(
+          'text-[var(--color-link-active)]'
+        );
+        expect(wrapper.get(nodeLinkSelector).classes()).toContain(
+          'hover:text-[var(--color-link-active)]'
+        );
       });
-      const wrapper = shallowMount(ContentNode, GeneralMountOptions);
-      expect(wrapper.get(nodeLinkSelector).classes()).not.toContain(
-        'text-[var(--color-link-active)]'
-      );
-      expect(wrapper.get(nodeLinkSelector).classes()).toContain(
-        'hover:text-[var(--color-link-active)]'
-      );
+      it('should render with "font-semibold" class, without "font-bold" class', () => {
+        (useRoute as Mock).mockReturnValueOnce({
+          fullPath: 'foo',
+        });
+        const wrapper = shallowMount(ContentNode, GeneralMountOptions);
+        const contentNodeSelector = `[data-testid=${
+          GeneralMountOptions.props!.contentKey
+        }]`;
+        expect(wrapper.get(contentNodeSelector).classes()).not.toContain(
+          'font-bold'
+        );
+        expect(wrapper.get(contentNodeSelector).classes()).toContain(
+          'font-semibold'
+        );
+      });
     });
     describe('contentKey of node without children', () => {
       it('should not render nodeChildrenWrapper', () => {

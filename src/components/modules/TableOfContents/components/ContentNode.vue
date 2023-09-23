@@ -1,6 +1,7 @@
 <template>
   <div
-    class="my-1 text-sm text-[var(--color-link)] font-bold"
+    class="my-1 text-sm text-[var(--color-link)]"
+    :class="route.fullPath.includes(nodePage) ? 'font-bold' : 'font-semibold'"
     ref="currentNode"
     :data-testid="contentKey"
   >
