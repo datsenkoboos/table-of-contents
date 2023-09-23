@@ -1,4 +1,4 @@
-import type ContentNode from './ContentNode'
-import type Data from './Data'
+import type ContentNodeModel from './ContentNodeModel';
+import type DataModel from './DataModel';
 
-export { type ContentNode, type Data }
+export { type ContentNodeModel, type DataModel };
