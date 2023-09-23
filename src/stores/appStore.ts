@@ -5,39 +5,40 @@ const useAppStore = defineStore('app', {
   state: (): {
     showTableOfContents: boolean;
     data: DataModel;
-    nodesToShowChildren: string[];
+    keysToShowChildren: string[];
   } => {
     return {
       showTableOfContents: true,
       data: {} as DataModel,
-      nodesToShowChildren: []
+      keysToShowChildren: [],
     };
   },
   actions: {
     setData(data: typeof this.data): void {
       Object.assign(this.data, data);
     },
+    getNodeByKey(key: string): ContentNodeModel {
+      return this.data.pages[key];
+    },
+    addKeysToShowChildren(key: string): void {
+      this.keysToShowChildren.push(key);
+    },
     async init(inititialKey?: string) {
       const data: DataModel = await (
         await fetch('https://prolegomenon.s3.amazonaws.com/contents.json')
       ).json();
       this.setData(data);
+
       if (inititialKey) {
         let node = this.getNodeByKey(inititialKey);
-        this.addNodesToShowChildren(node.key)
+        this.addKeysToShowChildren(node.key);
         for (let i = node.level; i > 0; i--) {
           const parentKey = node.parentKey!;
-          this.addNodesToShowChildren(parentKey)
-          node = this.getNodeByKey(parentKey)
+          this.addKeysToShowChildren(parentKey);
+          node = this.getNodeByKey(parentKey);
         }
       }
     },
-    getNodeByKey(key: string): ContentNodeModel {
-      return this.data.pages[key]
-    },
-    addNodesToShowChildren(key: string): void {
-      this.nodesToShowChildren.push(key);
-    }
   },
 });
 
